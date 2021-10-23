@@ -13,4 +13,4 @@ cd %dir_name%
 
 cmake ..
 
-cmake --build .
+::cmake --build .

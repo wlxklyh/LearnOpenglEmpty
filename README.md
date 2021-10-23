@@ -1,2 +1,14 @@
 # LearnOpenglEmpty
-目的为了给学opengl的人不被环境困扰。使用方法，用Cmake命令然后就可以生成LearnOpengl的工程，然后每个sample都是空的  
+
+## 目的
+
+学opengl的人不被环境困扰。
+
+## Build
+
+运行build_windows.bat 然后打开工程build/LearnOpenGL.sln 如下图所示,这些工程里面都是空的只有一个Main但是环境是可以的 直接在里面写代码就可以。
+![ShowSln](Img/ShowSln.png)
+
+## Run
+
+![show](Img/show.png)
