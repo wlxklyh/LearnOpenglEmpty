@@ -1,0 +1,2 @@
+# LearnOpenglEmpty
+目的为了给学opengl的人不被环境困扰。使用方法，用Cmake命令然后就可以生成LearnOpengl的工程，然后每个sample都是空的  
