@@ -33,15 +33,23 @@ add_library(STB_IMAGE "src/ThirdParty/stb_image.cpp")
 set(LIBS ${LIBS} STB_IMAGE)
 add_library(GLAD "src/ThirdParty/glad.c")
 set(LIBS ${LIBS} GLAD)
+set(HCORE_DIR src/Core/)
 
+file(GLOB_RECURSE HCORE_CPP_FILES ${HCORE_DIR}/*.cpp)
+add_library(HCore ${HCORE_CPP_FILES})
+set(LIBS ${LIBS} HCore)
+
+#（4）这个来把路径设置到工程里面
+configure_file(configuration/root_directory.h.in configuration/root_directory.h)
+include_directories(${CMAKE_BINARY_DIR}/configuration)
+
+
+#（5）组织工程 每一个节都是一个独立工程
 # ????
 macro(makeLink src dest target)
     add_custom_command(TARGET ${target} POST_BUILD COMMAND ${CMAKE_COMMAND} -E create_symlink ${src} ${dest}  DEPENDS  ${dest} COMMENT "mklink ${src} -> ${dest}")
 endmacro()
 
-
-
-#（4）组织工程 每一个节都是一个独立工程
 set(CHAPTERS
         Chapter1.getting_started
         Chapter2.lighting
@@ -63,8 +71,12 @@ set(Chapter1.getting_started
         Chapter1_3.1.shaders_uniform
         Chapter1_3.2.shaders_interpolation
         Chapter1_3.3.shaders_class
+        Chapter1_3.4.shaders_exercise1
+        Chapter1_3.5.shaders_exercise2
+        Chapter1_3.6.shaders_exercise3
         Chapter1_4.1.textures
         Chapter1_4.2.textures_combined
+        Chapter1_4.3.textures_exercise1
         Chapter1_4.4.textures_exercise2
         Chapter1_4.5.textures_exercise3
         Chapter1_4.6.textures_exercise4
@@ -185,12 +197,19 @@ foreach(CHAPTER ${CHAPTERS})
                 "src/Samples/${CHAPTER}/${DEMO}/*.vs"
                 "src/Samples/${CHAPTER}/${DEMO}/*.fs"
                 "src/Samples/${CHAPTER}/${DEMO}/*.gs"
+                "src/Samples/${CHAPTER}/${DEMO}/*.glsl"
                 )
         set(NAME "${CHAPTER}__${DEMO}")
         add_executable(${NAME} ${SOURCE})
 
+
+
         target_link_libraries(${NAME} ${LIBS})
         if(WIN32)
+            file(GLOB dll_src "${CMAKE_SOURCE_DIR}/dlls/*.dll" )
+            file(COPY ${dll_src} DESTINATION "${CMAKE_SOURCE_DIR}/bin/${CHAPTER}")
+            file(COPY ${dll_src} DESTINATION "${CMAKE_SOURCE_DIR}/bin/${CHAPTER}/Debug")
+
             set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CHAPTER}")
             set_target_properties(${NAME} PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CHAPTER}/Debug")
         elseif(UNIX AND NOT APPLE)
@@ -203,14 +222,17 @@ foreach(CHAPTER ${CHAPTERS})
 
         # 拷贝shader到build目录
         file(GLOB SHADERS
-                "src/${CHAPTER}/${DEMO}/*.vs"
-                "src/${CHAPTER}/${DEMO}/*.fs"
-                "src/${CHAPTER}/${DEMO}/*.gs"
+                "src/Samples/${CHAPTER}/${DEMO}/*.vs"
+                "src/Samples/${CHAPTER}/${DEMO}/*.fs"
+                "src/Samples/${CHAPTER}/${DEMO}/*.gs"
+                "src/Samples/${CHAPTER}/${DEMO}/*.glsl"
                 )
         foreach(SHADER ${SHADERS})
             if(WIN32)
                 # configure_file(${SHADER} "test")
+                target_compile_definitions(${NAME} PRIVATE "SLN_SOURCE_CODE_DIR=\"${CMAKE_SOURCE_DIR}/src/Samples/${CHAPTER}/${DEMO}/\"")
                 add_custom_command(TARGET ${NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:${NAME}>)
+
             elseif(UNIX AND NOT APPLE)
                 file(COPY ${SHADER} DESTINATION ${CMAKE_SOURCE_DIR}/bin/${CHAPTER})
             elseif(APPLE)
@@ -227,4 +249,4 @@ foreach(CHAPTER ${CHAPTERS})
     endforeach(DEMO)
 endforeach(CHAPTER)
 
-include_directories(${CMAKE_SOURCE_DIR}/dependencies/includes)
+include_directories(${CMAKE_SOURCE_DIR}/dependencies/includes ${CMAKE_SOURCE_DIR}/src/Core)
